@@ -8,7 +8,7 @@
 <Scene xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
    <AnchorPane prefHeight="363.0" prefWidth="500.0">
       <Button fx:id="startButton" layoutX="408.0" layoutY="158.0" mnemonicParsing="false" prefHeight="37.0"
-              prefWidth="62.0" text="START" onMouseClicked="#checkChannelName">
+              prefWidth="62.0" text="START" onMouseClicked="#start">
          <font>
             <Font size="12.0"/>
          </font>
