@@ -23,6 +23,7 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.json', name: 'json', version: '20090211'
+    compile 'org.apache.httpcomponents:httpclient:4.5.13'
 }
 
 javafx {
