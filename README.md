@@ -1,3 +1,5 @@
+![Build](https://github.com/OGSegu/Twitch-View-Bot/workflows/Java%20CI/badge.svg)
+
 # Twitch View Bot
 
 __disclaimer:__ This project was created only for educational purpose and really fast. It probably has a lot of bugs and bad architecture.
