@@ -10,7 +10,7 @@ First open-source really working view bot for Twitch. My project don't use Selen
 
 ### Installation
 ``git clone https://github.com/OGSegu/Twitch_ViewBot.git``  
-``gradle build``
+``./gradlew build``
 
 
 __Contributions are welcomed.__
