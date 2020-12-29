@@ -1,3 +1,5 @@
+package controller;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,10 +22,13 @@ public class Main {
         public void start(Stage stage) throws Exception {
             mainStage = stage;
             stage.setTitle("Twitch View Bot 0.1");
-            Scene content = FXMLLoader.load(getClass().getResource("sample.fxml"));
-            content.getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+            Scene content = FXMLLoader.load(getClass().getResource("/sample.fxml"));
+            content.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             stage.setScene(content);
             stage.show();
+            stage.setOnCloseRequest((e) -> {
+                System.exit(0);
+            });
         }
     }
 }

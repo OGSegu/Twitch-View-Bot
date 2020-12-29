@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<Scene xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+<Scene xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
    <AnchorPane prefHeight="292.0" prefWidth="500.0">
       <Button fx:id="startButton" layoutX="389.0" layoutY="82.0" mnemonicParsing="false" onMouseClicked="#start" prefHeight="37.0" prefWidth="62.0" text="START">
          <font>

@@ -1,8 +1,16 @@
+package controller;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import viewbot.ViewBot;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class Controller {
 
     FileChooser fileChooser = new FileChooser();
-    ViewBot viewBot = new ViewBot(this);
+    ViewBot viewBot;
+    LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
     {
         fileChooser.setTitle("Choose proxy file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
@@ -41,7 +50,7 @@ public class Controller {
     public void initialize() {
         slider.valueProperty().addListener(((observable, oldValue, newValue) ->
                 labelViewers.setText(String.valueOf(newValue.intValue()))
-                ));
+        ));
     }
 
     @FXML
@@ -68,49 +77,64 @@ public class Controller {
     @FXML
     private void start() {
         if (startButton.getText().equals("START")) {
-            if (viewBot.getFullProxyList().size() == 0) {
+            if (proxyQueue.isEmpty()) {
                 writeToLog("Proxy not loaded");
                 return;
             }
             String target = channelNameField.getText();
-            if (!viewBot.isChannelNameValid(target)) {
+            if (!isChannelNameValid(target)) {
                 channelNameField.getStyleClass().add("error");
                 writeToLog("Wrong channel name. Try again");
                 return;
             }
-            Thread viewBotThread = new Thread(viewBot::start);
             channelNameField.getStyleClass().remove("error");
-            viewBot.setTarget(target);
-            int threads = Integer.parseInt(labelViewers.getText());
-            viewBot.setThreads(threads);
-            viewBot.setThreadPoolExecutor(new ThreadPoolExecutor(0,
-                    500,
-                    10L,
-                    TimeUnit.SECONDS,
-                    new SynchronousQueue<>(),
-                    new ThreadPoolExecutor.CallerRunsPolicy()));
+
+            viewBot = ViewBot.getInstance(this, proxyQueue, target);
+            viewBot.setThreads(Integer.parseInt(labelViewers.getText()));
+            Thread viewBotThread = new Thread(viewBot::start);
             viewBotThread.start();
             startButton.setText("STOP");
         } else {
-            stop();
+            startButton.setText("START");
         }
     }
 
+    private boolean isChannelNameValid(String target) {
+        return !target.isBlank() && !target.isEmpty();
+    }
+
     @FXML
-    private void stop() {
+    public void stopViewBot() {
         if (viewBot != null) {
-            startButton.setText("START");
+            resetCount();
+            cleanLogArea();
             writeToLog("Stopped");
         }
     }
 
+
     @FXML
     private void loadProxy() {
         File file = fileChooser.showOpenDialog(Main.mainStage);
-        if (file != null)
-            viewBot.loadProxy(file);
-        else
+        if (file != null) {
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+                String proxy;
+                proxyQueue = new LinkedBlockingQueue<>(100000);
+                while ((proxy = bufferedReader.readLine()) != null) {
+                    proxyQueue.add(proxy);
+                }
+            } catch (IOException e) {
+                System.out.println("Something went wrong");
+            }
+            writeToLog("Proxy loaded: " + proxyQueue.size());
+        } else {
             writeToLog("File was not found");
+        }
+    }
+
+    @FXML
+    public void cleanLogArea() {
+        logArea.clear();
     }
 
     public Button getStartButton() {
