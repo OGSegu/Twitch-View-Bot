@@ -1,4 +1,4 @@
-![Build](https://github.com/OGSegu/University_Research/workflows/Java/badge.svg)
+![Build](https://github.com/OGSegu/Twitch-View-Bot/workflows/Java CI/badge.svg)
 
 # Twitch View Bot
 
