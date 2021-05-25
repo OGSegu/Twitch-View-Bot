@@ -82,9 +82,9 @@ public class Controller {
                 return;
             }
             String target = channelNameField.getText();
-            if (!isChannelNameValid(target)) {
+            if (!isChannelValid(target)) {
                 channelNameField.getStyleClass().add("error");
-                writeToLog("Wrong channel name. Try again");
+                writeToLog("Wrong channel . Try again");
                 return;
             }
             channelNameField.getStyleClass().remove("error");
@@ -97,16 +97,18 @@ public class Controller {
         }
     }
 
-    private boolean isChannelNameValid(String target) {
+    private boolean isChannelValid(String target) {
         if (target.isBlank() || target.isEmpty()) {
             return false;
         }
+        boolean isChannelLive;
         try {
-            twitchUtil.getChannelId(target);
+            String channelId = twitchUtil.getChannelId(target);
+            isChannelLive = twitchUtil.isChannelLive(channelId);
         } catch (Exception e) {
             return false;
         }
-        return true;
+        return isChannelLive;
     }
 
     @FXML
