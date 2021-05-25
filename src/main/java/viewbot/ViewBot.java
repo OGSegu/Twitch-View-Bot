@@ -2,6 +2,7 @@ package viewbot;
 
 import controller.Controller;
 import javafx.application.Platform;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -19,13 +20,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static service.TwitchUtil.CLIENT_ID;
+
 
 public class ViewBot {
-    private static final String CLIENT_ID = "b31o4btkqth5bzbvr9ub2ovr79umhh";
 
-    private static final String USER_AGENT_HEADER_NAME = "User-Agent";
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36";
-    private static final String ACCEPT_HEADER_NAME = "Accept";
     private static final String ACCEPT_VIDEO = "application/x-mpegURL, application/vnd.apple.mpegurl, application/json, text/plain";
     private static final String GET_VIDEO = "https://usher.ttvnw.net/api/channel/hls/%s.m3u8?" +
             "allow_source=true&baking_bread=true&baking_brownies=true&baking_brownies_timeout=1050&fast_bread=true&p=3168255&player_backend=mediaplayer&" +
@@ -37,9 +37,6 @@ public class ViewBot {
     private static final String ACCEPT_LANG = "en-us";
     private static final String CONTENT_INFO = "application/json; charset=UTF-8";
     private static final String REFERER = "https://www.twitch.tv/";
-    public static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
-    public static final String ACCEPT_LANGUAGE_HEADER_NAME = "Accept-Language";
-    public static final String REFERER_HEADER_NAME = "Referer";
 
 
     private ExecutorService threadPool;
@@ -137,8 +134,8 @@ public class ViewBot {
 
     private void sendView(HttpClient client, String url) throws IOException {
         HttpHead headRequest = new HttpHead(url);
-        headRequest.setHeader(USER_AGENT_HEADER_NAME, USER_AGENT);
-        headRequest.setHeader(ACCEPT_HEADER_NAME, ACCEPT_VIDEO);
+        headRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
+        headRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_VIDEO);
         client.client.execute(headRequest);
     }
 
@@ -146,8 +143,8 @@ public class ViewBot {
         String url = String.format(GET_VIDEO, target, sig, token);
         System.out.println(url);
         HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeader(USER_AGENT_HEADER_NAME, USER_AGENT);
-        getRequest.setHeader(ACCEPT_HEADER_NAME, ACCEPT_VIDEO);
+        getRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
+        getRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_VIDEO);
         CloseableHttpResponse response = client.client.execute(getRequest);
         String body;
         body = EntityUtils.toString(response.getEntity());
@@ -159,16 +156,16 @@ public class ViewBot {
         return "https://" + body.substring(body.indexOf("https://") + "https://".length(), body.indexOf(".m3u8")) + ".m3u8";
     }
 
-    private String[] getInfo(HttpClient client) throws JSONException, IOException {
+    private String[] getInfo(HttpClient httpClient) throws JSONException, IOException {
         String[] resultArray = new String[2];
         String url = String.format(GET_INFO, target, CLIENT_ID);
         HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeader(USER_AGENT_HEADER_NAME, USER_AGENT);
-        getRequest.setHeader(ACCEPT_HEADER_NAME, ACCEPT_INFO);
-        getRequest.setHeader(CONTENT_TYPE_HEADER_NAME, CONTENT_INFO);
-        getRequest.setHeader(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANG);
-        getRequest.setHeader(REFERER_HEADER_NAME, REFERER + target);
-        CloseableHttpResponse response = client.client.execute(getRequest);
+        getRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
+        getRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_INFO);
+        getRequest.setHeader(HttpHeaders.CONTENT_TYPE, CONTENT_INFO);
+        getRequest.setHeader(HttpHeaders.ACCEPT_LANGUAGE, ACCEPT_LANG);
+        getRequest.setHeader(HttpHeaders.REFERER, REFERER + target);
+        CloseableHttpResponse response = httpClient.client.execute(getRequest);
         String body;
         try {
             body = EntityUtils.toString(response.getEntity());

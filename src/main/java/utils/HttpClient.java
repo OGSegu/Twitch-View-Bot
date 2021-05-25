@@ -9,10 +9,14 @@ public class HttpClient {
     public final CloseableHttpClient client;
 
     public HttpClient(String ip, int port) {
-        HttpHost super_proxy = new HttpHost(ip, port);
+        HttpHost superProxy = new HttpHost(ip, port);
         client = HttpClients.custom()
                 .setConnectionManager(new BasicHttpClientConnectionManager())
-                .setProxy(super_proxy)
+                .setProxy(superProxy)
                 .build();
+    }
+
+    public HttpClient() {
+        client = HttpClients.createDefault();
     }
 }

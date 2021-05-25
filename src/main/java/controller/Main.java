@@ -27,9 +27,7 @@ public class Main {
             stage.setScene(content);
             stage.setResizable(false);
             stage.show();
-            stage.setOnCloseRequest((e) -> {
-                System.exit(0);
-            });
+            stage.setOnCloseRequest(e -> System.exit(0));
         }
     }
 }

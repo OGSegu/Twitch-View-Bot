@@ -3,23 +3,21 @@ package controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import service.TwitchUtil;
 import viewbot.ViewBot;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class Controller {
-
+    private final TwitchUtil twitchUtil = new TwitchUtil();
     FileChooser fileChooser = new FileChooser();
     ViewBot viewBot;
     LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
+
     {
         fileChooser.setTitle("Choose proxy file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
@@ -76,7 +74,9 @@ public class Controller {
 
     @FXML
     private void start() {
-        if (startButton.getText().equals("START")) {
+        if (!startButton.getText().equals("START")) {
+            startButton.setText("START");
+        } else {
             if (proxyQueue.isEmpty()) {
                 writeToLog("Proxy not loaded");
                 return;
@@ -94,13 +94,19 @@ public class Controller {
             Thread viewBotThread = new Thread(viewBot::start);
             viewBotThread.start();
             startButton.setText("STOP");
-        } else {
-            startButton.setText("START");
         }
     }
 
     private boolean isChannelNameValid(String target) {
-        return !target.isBlank() && !target.isEmpty();
+        if (target.isBlank() || target.isEmpty()) {
+            return false;
+        }
+        try {
+            twitchUtil.getChannelId(target);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     @FXML
