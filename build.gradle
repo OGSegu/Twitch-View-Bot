@@ -5,7 +5,7 @@ plugins {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'controller/Main'
+        attributes 'Main-Class': 'controller.Main'
     }
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
@@ -22,8 +22,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.json', name: 'json', version: '20090211'
-    compile 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation group: 'org.json', name: 'json', version: '20201115'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 }
 
 javafx {

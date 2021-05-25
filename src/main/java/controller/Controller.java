@@ -89,7 +89,7 @@ public class Controller {
             }
             channelNameField.getStyleClass().remove("error");
 
-            viewBot = ViewBot.getInstance(this, proxyQueue, target);
+            viewBot = new ViewBot(this, proxyQueue, target);
             viewBot.setThreads(Integer.parseInt(labelViewers.getText()));
             Thread viewBotThread = new Thread(viewBot::start);
             viewBotThread.start();

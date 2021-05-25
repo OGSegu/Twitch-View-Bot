@@ -25,6 +25,7 @@ public class Main {
             Scene content = FXMLLoader.load(getClass().getResource("/sample.fxml"));
             content.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             stage.setScene(content);
+            stage.setResizable(false);
             stage.show();
             stage.setOnCloseRequest((e) -> {
                 System.exit(0);
