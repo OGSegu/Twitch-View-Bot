@@ -37,13 +37,10 @@ public class ViewBot {
     private static final String ACCEPT_LANG = "en-us";
     private static final String CONTENT_INFO = "application/json; charset=UTF-8";
     private static final String REFERER = "https://www.twitch.tv/";
-
-
+    private final Controller controller;
     private ExecutorService threadPool;
     private LinkedBlockingQueue<String> proxyQueue;
     private String target;
-    private final Controller controller;
-
     private int threads;
 
     public ViewBot(Controller controller, LinkedBlockingQueue<String> proxyQueue, String target) {
@@ -84,7 +81,16 @@ public class ViewBot {
             }
             String ip = fullIp[0];
             int port = Integer.parseInt(fullIp[1]);
-            HttpClient httpClient = new HttpClient(ip, port);
+            HttpClient httpClient;
+            if (fullIp.length == 4) {
+                String user = fullIp[2];
+                String pass = fullIp[3];
+                httpClient = new HttpClient(ip, port, user, pass);
+                writeToLog("Configuring proxy with authentication!");
+            } else {
+                httpClient = new HttpClient(ip, port);
+                writeToLog("Configuring proxy without authentication!");
+            }
             String[] info;
             try {
                 info = getInfo(httpClient);
@@ -182,6 +188,11 @@ public class ViewBot {
         return proxyQueue;
     }
 
+    public ViewBot setProxyQueue(LinkedBlockingQueue<String> proxyQueue) {
+        this.proxyQueue = proxyQueue;
+        return this;
+    }
+
     public void setThreads(int threads) {
         this.threads = threads;
     }
@@ -191,8 +202,4 @@ public class ViewBot {
         return this;
     }
 
-    public ViewBot setProxyQueue(LinkedBlockingQueue<String> proxyQueue) {
-        this.proxyQueue = proxyQueue;
-        return this;
-    }
 }
