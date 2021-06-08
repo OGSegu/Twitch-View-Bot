@@ -2,3 +2,9 @@
 /.gradle/
 /build/
 /build/classes/java/main/
+
+# IntelliJ
+.idea
+
+# OSx
+.DS_Store
