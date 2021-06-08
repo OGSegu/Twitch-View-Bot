@@ -86,10 +86,8 @@ public class ViewBot {
                 String user = fullIp[2];
                 String pass = fullIp[3];
                 httpClient = new HttpClient(ip, port, user, pass);
-                writeToLog("Configuring proxy with authentication!");
             } else if (fullIp.length == 2) {
                 httpClient = new HttpClient(ip, port);
-                writeToLog("Configuring proxy without authentication!");
             } else {
                 writeToLog("Invalid proxy configuration. Continuing...");
                 return;
