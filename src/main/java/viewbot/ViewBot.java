@@ -1,6 +1,7 @@
 package viewbot;
 
-import controller.Controller;
+import config.Config;
+import controller.ControllerMain;
 import javafx.application.Platform;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -9,6 +10,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import service.TwitchUtil;
 import utils.HttpClient;
 
 import java.io.IOException;
@@ -37,23 +39,65 @@ public class ViewBot {
     private static final String ACCEPT_LANG = "en-us";
     private static final String CONTENT_INFO = "application/json; charset=UTF-8";
     private static final String REFERER = "https://www.twitch.tv/";
-    private final Controller controller;
+
+
     private ExecutorService threadPool;
     private LinkedBlockingQueue<String> proxyQueue;
     private String target;
+    private final ControllerMain controllerMain;
+    private final TwitchUtil twitchUtil = new TwitchUtil();
+
     private int threads;
 
-    public ViewBot(Controller controller, LinkedBlockingQueue<String> proxyQueue, String target) {
-        this.controller = controller;
+    private Thread waitingThread;
+
+    public ViewBot(ControllerMain controllerMain, LinkedBlockingQueue<String> proxyQueue, String target) {
+        this.controllerMain = controllerMain;
         this.proxyQueue = proxyQueue;
         this.target = target;
     }
 
     private void writeToLog(String msg) {
         Platform.runLater(() ->
-                controller.writeToLog(msg)
+                controllerMain.writeToLog(msg)
         );
     }
+
+    public void prepareToStart() {
+        if (Config.startWhenLiveValue) {
+            try {
+                String channelId = twitchUtil.getChannelId(target);
+                Runnable waitingRunnable = getWaitingRunnable(channelId);
+                waitingThread = new Thread(waitingRunnable);
+                waitingThread.start();
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+                writeToLog("Failed to get channel status");
+            }
+        }
+    }
+
+    private Runnable getWaitingRunnable(String channelId) {
+        return () -> {
+            synchronized (this) {
+                while (true) {
+                    try {
+                        if (Thread.currentThread().isInterrupted()) break;
+                        writeToLog("Waiting when channel goes live");
+                        if (twitchUtil.isChannelLive(channelId)) break;
+                    } catch (IOException e) {
+                        writeToLog("Can't get channel status");
+                    }
+                    try {
+                        wait((long) Config.repeatEveryMinutesValue * 1000 * 60);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        };
+    }
+
 
     public void start() {
         threadPool = Executors.newFixedThreadPool(threads);
@@ -61,12 +105,19 @@ public class ViewBot {
         for (int i = 0; i < threads; i++) {
             this.threadPool.execute(getExecutable());
         }
-        while (!controller.getStartButton().getText().equals("START")) {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        try {
+            if (!Config.stopWhenOfflineValue) {
+                Thread.sleep((long) Config.stopAfterHsValue * 1000 * 60 * 60);
+            } else {
+                while (controllerMain.getStartButton().getText().equals("START")) {
+                    if (!twitchUtil.isChannelLive(target)) break;
+                    Thread.sleep(2000);
+                }
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            writeToLog("Failed get channel status");
         }
         stop();
     }
@@ -81,7 +132,7 @@ public class ViewBot {
             }
             String ip = fullIp[0];
             int port = Integer.parseInt(fullIp[1]);
-            HttpClient httpClient;
+                        HttpClient httpClient;
             if (fullIp.length == 4) {
                 String user = fullIp[2];
                 String pass = fullIp[3];
@@ -109,7 +160,7 @@ public class ViewBot {
                     sendView(httpClient, videoSequenceURL);
                     if (!viewWasSent) {
                         viewWasSent = true;
-                        Platform.runLater(controller::addCount);
+                        Platform.runLater(controllerMain::addCount);
                     }
                     Thread.sleep(5000);
                 }
@@ -123,19 +174,25 @@ public class ViewBot {
 
 
     public void stop() {
-        threadPool.shutdown();
-        threadPool.shutdownNow();
-        while (true) {
-            try {
+        if (waitingThread.isAlive()) {
+            waitingThread.interrupt();
+        } else if (threadPool != null) {
+            new Thread(() -> {
                 writeToLog("Shutdowning threads...");
-                if (threadPool.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
-                    break;
+                writeToLog("Wait until console has been not cleared");
+                threadPool.shutdown();
+                threadPool.shutdownNow();
+                try {
+                    if (threadPool.awaitTermination(20000, TimeUnit.MILLISECONDS)) {
+                        threadPool.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    threadPool.shutdownNow();
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+                Platform.runLater(controllerMain::stopViewBot);
+            }).start();
         }
-        Platform.runLater(controller::stopViewBot);
     }
 
 
@@ -188,11 +245,12 @@ public class ViewBot {
     public Queue<String> getProxyQueue() {
         return proxyQueue;
     }
-
-    public ViewBot setProxyQueue(LinkedBlockingQueue<String> proxyQueue) {
+	
+	    public ViewBot setProxyQueue(LinkedBlockingQueue<String> proxyQueue) {
         this.proxyQueue = proxyQueue;
         return this;
     }
+
 
     public void setThreads(int threads) {
         this.threads = threads;
@@ -202,5 +260,6 @@ public class ViewBot {
         this.target = target;
         return this;
     }
+
 
 }
