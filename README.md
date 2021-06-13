@@ -23,6 +23,4 @@ Run the builded .jar file from /build/libs/FILENAME.jar with java 11.
 You should use high-end expensive rotating residential proxies
 
 
-
-
 __Contributions are welcomed.__
