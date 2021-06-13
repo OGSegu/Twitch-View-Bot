@@ -10,20 +10,20 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<Scene xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
+<Scene xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ControllerMain">
    <AnchorPane prefHeight="292.0" prefWidth="500.0">
       <Button fx:id="startButton" layoutX="389.0" layoutY="82.0" mnemonicParsing="false" onMouseClicked="#start" prefHeight="37.0" prefWidth="62.0" text="START">
          <font>
             <Font size="12.0" />
          </font>
       </Button>
-      <TextField fx:id="channelNameField" layoutX="63.0" layoutY="32.0" promptText="Channel name">
+      <TextField fx:id="channelNameField" layoutX="32.0" layoutY="32.0" promptText="Channel name">
          <cursor>
             <Cursor fx:constant="TEXT" />
          </cursor>
       </TextField>
       <Slider id="sliderViewers" fx:id="slider" layoutX="90.0" layoutY="93.0" max="150.0" min="1.0" prefHeight="13.0" prefWidth="251.0" />
-      <Button id="loadProxiesBtn" fx:id="loadProxiesBtn" layoutX="237.0" layoutY="31.0" mnemonicParsing="false" onMouseClicked="#loadProxy" prefHeight="28.0" prefWidth="83.0" text="Load Proxies">
+      <Button id="loadProxiesBtn" fx:id="loadProxiesBtn" layoutX="216.0" layoutY="30.0" mnemonicParsing="false" onMouseClicked="#loadProxy" prefHeight="28.0" prefWidth="101.0" text="Load Proxies">
          <font>
             <Font size="12.0" />
          </font>
@@ -32,6 +32,11 @@
       <TextArea fx:id="logArea" editable="false" layoutX="26.0" layoutY="130.0" prefHeight="125.0" prefWidth="449.0" />
       <Label fx:id="labelViewers" layoutX="346.0" layoutY="91.0" text="0" />
       <Label layoutX="27.0" layoutY="261.0" text="Viewers sent: " />
-      <Label fx:id="viewCount" layoutX="106.0" layoutY="262.0" text="0" />
+      <Label fx:id="viewCount" layoutX="117.0" layoutY="262.0" text="0" />
+      <Button fx:id="configButton" layoutX="384.0" layoutY="30.0" mnemonicParsing="false" onMouseClicked="#openConfig" prefHeight="28.0" prefWidth="72.0" text="Config">
+         <font>
+            <Font size="12.0" />
+         </font>
+      </Button>
    </AnchorPane>
 </Scene>

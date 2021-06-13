@@ -1,9 +1,11 @@
 package controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
-import service.TwitchUtil;
+import javafx.stage.Stage;
 import viewbot.ViewBot;
 
 import java.io.BufferedReader;
@@ -12,13 +14,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Controller {
-    private final TwitchUtil twitchUtil = new TwitchUtil();
-    FileChooser fileChooser = new FileChooser();
-    ViewBot viewBot;
-    LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
+public class ControllerMain {
+    private static final FileChooser fileChooser = new FileChooser();
+    private ViewBot viewBot;
+    private LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
 
-    {
+    static {
         fileChooser.setTitle("Choose proxy file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
     }
@@ -33,9 +34,6 @@ public class Controller {
     public TextArea logArea;
 
     @FXML
-    public Button loadProxiesButton;
-
-    @FXML
     private Slider slider;
 
     @FXML
@@ -43,7 +41,6 @@ public class Controller {
 
     @FXML
     private Label viewCount;
-
 
     public void initialize() {
         slider.valueProperty().addListener(((observable, oldValue, newValue) ->
@@ -62,11 +59,6 @@ public class Controller {
     }
 
     @FXML
-    public void changeButton() {
-        startButton.setText("5");
-    }
-
-    @FXML
     public void writeToLog(String text) {
         logArea.appendText(text + "\n");
     }
@@ -75,6 +67,7 @@ public class Controller {
     @FXML
     private void start() {
         if (!startButton.getText().equals("START")) {
+            viewBot.stop();
             startButton.setText("START");
         } else {
             if (proxyQueue.isEmpty()) {
@@ -91,29 +84,27 @@ public class Controller {
 
             viewBot = new ViewBot(this, proxyQueue, target);
             viewBot.setThreads(Integer.parseInt(labelViewers.getText()));
-            Thread viewBotThread = new Thread(viewBot::start);
-            viewBotThread.start();
+            Thread prepareToStartThread = new Thread(viewBot::prepareToStart);
             startButton.setText("STOP");
+            prepareToStartThread.start();
+            try {
+                prepareToStartThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            Thread startThread = new Thread(viewBot::start);
+            startThread.start();
         }
     }
 
     private boolean isChannelValid(String target) {
-        if (target.isBlank() || target.isEmpty()) {
-            return false;
-        }
-        boolean isChannelLive;
-        try {
-            String channelId = twitchUtil.getChannelId(target);
-            isChannelLive = twitchUtil.isChannelLive(channelId);
-        } catch (Exception e) {
-            return false;
-        }
-        return isChannelLive;
+        return !target.isBlank() && !target.isEmpty();
     }
 
     @FXML
     public void stopViewBot() {
         if (viewBot != null) {
+            startButton.setText("START");
             resetCount();
             cleanLogArea();
             writeToLog("Stopped");
@@ -141,19 +132,21 @@ public class Controller {
     }
 
     @FXML
+    private void openConfig() throws IOException {
+        Scene scene = FXMLLoader.load(getClass().getResource("/config.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Config");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
+    }
+
+    @FXML
     public void cleanLogArea() {
         logArea.clear();
     }
 
     public Button getStartButton() {
         return startButton;
-    }
-
-    public TextField getChannelNameField() {
-        return channelNameField;
-    }
-
-    public TextArea getLogArea() {
-        return logArea;
     }
 }

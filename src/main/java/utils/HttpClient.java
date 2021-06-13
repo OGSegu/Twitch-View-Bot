@@ -11,11 +11,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 public class HttpClient {
-
+	
     public final CloseableHttpClient client;
 
     public HttpClient(String ip, int port) {
-        this(ip, port, null, null);
+		        this(ip, port, null, null);
     }
 
     public HttpClient(String ip, int port, String user, String pass) {

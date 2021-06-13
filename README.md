@@ -9,7 +9,7 @@ However, the main goal is to show the way of sending requests which Twitch will 
 First open-source really working view bot for Twitch. My project don't use Selenium, it works only on HTTP requests.
 
 ### Installation
-``git clone https://github.com/OGSegu/Twitch_ViewBot.git``  
+``git clone https://github.com/OGSegu/Twitch-View-Bot_Upgraded.git``  
 ``./gradlew build``
 
 

@@ -22,7 +22,7 @@ public class Main {
         public void start(Stage stage) throws Exception {
             mainStage = stage;
             stage.setTitle("Twitch View Bot 0.1");
-            Scene content = FXMLLoader.load(getClass().getResource("/sample.fxml"));
+            Scene content = FXMLLoader.load(getClass().getResource("/main.fxml"));
             content.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
             stage.setScene(content);
             stage.setResizable(false);
