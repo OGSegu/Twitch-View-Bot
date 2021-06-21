@@ -9,12 +9,12 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import utils.Configs;
 import utils.HttpClient;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -22,37 +22,27 @@ import java.util.concurrent.TimeUnit;
 
 import static service.TwitchUtil.CLIENT_ID;
 
-
 public class ViewBot {
 
-    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36";
-    private static final String ACCEPT_VIDEO = "application/x-mpegURL, application/vnd.apple.mpegurl, application/json, text/plain";
-    private static final String GET_VIDEO = "https://usher.ttvnw.net/api/channel/hls/%s.m3u8?" +
-            "allow_source=true&baking_bread=true&baking_brownies=true&baking_brownies_timeout=1050&fast_bread=true&p=3168255&player_backend=mediaplayer&" +
-            "playlist_include_framerate=true&reassignments_supported=false&rtqos=business_logic_reverse&cdm=wv&sig=%s&token=%s";
-    private static final String ACCEPT_INFO = "application/vnd.twitchtv.v5+json; charset=UTF-8";
-    private static final String GET_INFO = "https://api.twitch.tv/api/channels/" +
-            "%s/access_token?need_https=true&oauth_token=&" +
-            "platform=web&player_backend=mediaplayer&player_type=site&client_id=%s";
-    private static final String ACCEPT_LANG = "en-us";
-    private static final String CONTENT_INFO = "application/json; charset=UTF-8";
-    private static final String REFERER = "https://www.twitch.tv/";
     private final Controller controller;
-    private ExecutorService threadPool;
-    private LinkedBlockingQueue<String> proxyQueue;
-    private String target;
-    private int threads;
 
-    public ViewBot(Controller controller, LinkedBlockingQueue<String> proxyQueue, String target) {
+    private final LinkedBlockingQueue<String> proxyQueue;
+
+    private final String target;
+
+    private final int threads;
+
+    private ExecutorService threadPool;
+
+    public ViewBot(Controller controller, LinkedBlockingQueue<String> proxyQueue, String target, int threads) {
         this.controller = controller;
         this.proxyQueue = proxyQueue;
         this.target = target;
+        this.threads = threads;
     }
 
     private void writeToLog(String msg) {
-        Platform.runLater(() ->
-                controller.writeToLog(msg)
-        );
+        Platform.runLater(() -> controller.writeToLog(msg));
     }
 
     public void start() {
@@ -63,7 +53,7 @@ public class ViewBot {
         }
         while (!controller.getStartButton().getText().equals("START")) {
             try {
-                Thread.sleep(2000);
+                TimeUnit.MILLISECONDS.sleep(2000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -111,7 +101,7 @@ public class ViewBot {
                         viewWasSent = true;
                         Platform.runLater(controller::addCount);
                     }
-                    Thread.sleep(5000);
+                    TimeUnit.MILLISECONDS.sleep(5000);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -120,7 +110,6 @@ public class ViewBot {
             }
         };
     }
-
 
     public void stop() {
         threadPool.shutdown();
@@ -138,20 +127,19 @@ public class ViewBot {
         Platform.runLater(controller::stopViewBot);
     }
 
-
     private void sendView(HttpClient client, String url) throws IOException {
         HttpHead headRequest = new HttpHead(url);
-        headRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
-        headRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_VIDEO);
+        headRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
+        headRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_VIDEO);
         client.client.execute(headRequest);
     }
 
     private String getVideoSequence(HttpClient client, String token, String sig) throws IOException {
-        String url = String.format(GET_VIDEO, target, sig, token);
+        String url = String.format(Configs.GET_VIDEO, target, sig, token);
         System.out.println(url);
         HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
-        getRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_VIDEO);
+        getRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
+        getRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_VIDEO);
         CloseableHttpResponse response = client.client.execute(getRequest);
         String body;
         body = EntityUtils.toString(response.getEntity());
@@ -165,13 +153,13 @@ public class ViewBot {
 
     private String[] getInfo(HttpClient httpClient) throws JSONException, IOException {
         String[] resultArray = new String[2];
-        String url = String.format(GET_INFO, target, CLIENT_ID);
+        String url = String.format(Configs.GET_INFO, target, CLIENT_ID);
         HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeader(HttpHeaders.USER_AGENT, USER_AGENT);
-        getRequest.setHeader(HttpHeaders.ACCEPT, ACCEPT_INFO);
-        getRequest.setHeader(HttpHeaders.CONTENT_TYPE, CONTENT_INFO);
-        getRequest.setHeader(HttpHeaders.ACCEPT_LANGUAGE, ACCEPT_LANG);
-        getRequest.setHeader(HttpHeaders.REFERER, REFERER + target);
+        getRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
+        getRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_INFO);
+        getRequest.setHeader(HttpHeaders.CONTENT_TYPE, Configs.CONTENT_INFO);
+        getRequest.setHeader(HttpHeaders.ACCEPT_LANGUAGE, Configs.ACCEPT_LANG);
+        getRequest.setHeader(HttpHeaders.REFERER, Configs.REFERER + target);
         CloseableHttpResponse response = httpClient.client.execute(getRequest);
         String body;
         try {
@@ -183,24 +171,6 @@ public class ViewBot {
         resultArray[0] = URLEncoder.encode(jsonObject.getString("token").replace("\\", ""), StandardCharsets.UTF_8);
         resultArray[1] = jsonObject.getString("sig").replace("\\", "");
         return resultArray;
-    }
-
-    public Queue<String> getProxyQueue() {
-        return proxyQueue;
-    }
-
-    public ViewBot setProxyQueue(LinkedBlockingQueue<String> proxyQueue) {
-        this.proxyQueue = proxyQueue;
-        return this;
-    }
-
-    public void setThreads(int threads) {
-        this.threads = threads;
-    }
-
-    public ViewBot setTarget(String target) {
-        this.target = target;
-        return this;
     }
 
 }

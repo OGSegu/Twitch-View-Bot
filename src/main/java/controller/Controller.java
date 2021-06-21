@@ -83,8 +83,8 @@ public class Controller {
             }
             channelNameField.getStyleClass().remove("error");
 
-            viewBot = new ViewBot(this, proxyQueue, target);
-            viewBot.setThreads(Integer.parseInt(labelViewers.getText()));
+            viewBot = new ViewBot(this, proxyQueue, target, Integer.parseInt(labelViewers.getText()));
+
             Thread viewBotThread = new Thread(viewBot::start);
             viewBotThread.start();
             startButton.setText("STOP");
