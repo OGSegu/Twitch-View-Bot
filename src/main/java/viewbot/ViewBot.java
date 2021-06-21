@@ -47,7 +47,7 @@ public class ViewBot {
 
     public void start() {
         threadPool = Executors.newFixedThreadPool(threads);
-        writeToLog("Viewbot has been started with: " + threads + " threads");
+        writeToLog("ViewBot has been started with: " + threads + " threads");
         for (int i = 0; i < threads; i++) {
             this.threadPool.execute(getExecutable());
         }
@@ -63,21 +63,21 @@ public class ViewBot {
 
     private Runnable getExecutable() {
         return () -> {
-            String[] fullIp = new String[0];
+            String[] proxyEntry = new String[0];
             try {
-                fullIp = proxyQueue.take().split(":");
+                proxyEntry = proxyQueue.take().split(":");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            String ip = fullIp[0];
-            int port = Integer.parseInt(fullIp[1]);
+            String hostname = proxyEntry[0];
+            int port = Integer.parseInt(proxyEntry[1]);
             HttpClient httpClient;
-            if (fullIp.length == 4) {
-                String user = fullIp[2];
-                String pass = fullIp[3];
-                httpClient = new HttpClient(ip, port, user, pass);
-            } else if (fullIp.length == 2) {
-                httpClient = new HttpClient(ip, port);
+            if (proxyEntry.length == 4) {
+                String user = proxyEntry[2];
+                String pass = proxyEntry[3];
+                httpClient = new HttpClient(hostname, port, user, pass);
+            } else if (proxyEntry.length == 2) {
+                httpClient = new HttpClient(hostname, port);
             } else {
                 writeToLog("Invalid proxy configuration. Continuing...");
                 return;
@@ -106,7 +106,7 @@ public class ViewBot {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (IOException | JSONException e) {
-                writeToLog("Bad proxy: " + ip);
+                writeToLog("Bad proxy: " + hostname);
             }
         };
     }
@@ -116,7 +116,7 @@ public class ViewBot {
         threadPool.shutdownNow();
         while (true) {
             try {
-                writeToLog("Shutdowning threads...");
+                writeToLog("Shutting down threads...");
                 if (threadPool.awaitTermination(2000, TimeUnit.MILLISECONDS)) {
                     break;
                 }
@@ -141,9 +141,7 @@ public class ViewBot {
         getRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
         getRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_VIDEO);
         CloseableHttpResponse response = client.execute(getRequest);
-        String body;
-        body = EntityUtils.toString(response.getEntity());
-
+        String body = EntityUtils.toString(response.getEntity());
         if (body == null) {
             writeToLog("Can't get video sequence");
             return "";
@@ -160,16 +158,12 @@ public class ViewBot {
         getRequest.setHeader(HttpHeaders.CONTENT_TYPE, Configs.CONTENT_INFO);
         getRequest.setHeader(HttpHeaders.ACCEPT_LANGUAGE, Configs.ACCEPT_LANG);
         getRequest.setHeader(HttpHeaders.REFERER, Configs.REFERER + target);
-        CloseableHttpResponse response = httpClient.execute(getRequest);
-        String body;
-        try {
-            body = EntityUtils.toString(response.getEntity());
-        } finally {
-            response.close();
+        try (CloseableHttpResponse response = httpClient.execute(getRequest)) {
+            String body = EntityUtils.toString(response.getEntity());
+            JSONObject jsonObject = new JSONObject(body);
+            resultArray[0] = URLEncoder.encode(jsonObject.getString("token").replace("\\", ""), StandardCharsets.UTF_8);
+            resultArray[1] = jsonObject.getString("sig").replace("\\", "");
         }
-        JSONObject jsonObject = new JSONObject(body);
-        resultArray[0] = URLEncoder.encode(jsonObject.getString("token").replace("\\", ""), StandardCharsets.UTF_8);
-        resultArray[1] = jsonObject.getString("sig").replace("\\", "");
         return resultArray;
     }
 

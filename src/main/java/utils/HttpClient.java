@@ -22,8 +22,8 @@ public class HttpClient {
         this(ip, port, null, null);
     }
 
-    public HttpClient(String ip, int port, String user, String pass) {
-        HttpHost superProxy = new HttpHost(ip, port);
+    public HttpClient(String hostname, int port, String user, String pass) {
+        HttpHost superProxy = new HttpHost(hostname, port);
         HttpClientBuilder builder = HttpClients.custom();
         if (user != null && pass != null) {
             CredentialsProvider provider = new BasicCredentialsProvider();
