@@ -131,7 +131,7 @@ public class ViewBot {
         HttpHead headRequest = new HttpHead(url);
         headRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
         headRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_VIDEO);
-        client.client.execute(headRequest);
+        client.execute(headRequest);
     }
 
     private String getVideoSequence(HttpClient client, String token, String sig) throws IOException {
@@ -140,7 +140,7 @@ public class ViewBot {
         HttpGet getRequest = new HttpGet(url);
         getRequest.setHeader(HttpHeaders.USER_AGENT, Configs.USER_AGENT);
         getRequest.setHeader(HttpHeaders.ACCEPT, Configs.ACCEPT_VIDEO);
-        CloseableHttpResponse response = client.client.execute(getRequest);
+        CloseableHttpResponse response = client.execute(getRequest);
         String body;
         body = EntityUtils.toString(response.getEntity());
 
@@ -160,7 +160,7 @@ public class ViewBot {
         getRequest.setHeader(HttpHeaders.CONTENT_TYPE, Configs.CONTENT_INFO);
         getRequest.setHeader(HttpHeaders.ACCEPT_LANGUAGE, Configs.ACCEPT_LANG);
         getRequest.setHeader(HttpHeaders.REFERER, Configs.REFERER + target);
-        CloseableHttpResponse response = httpClient.client.execute(getRequest);
+        CloseableHttpResponse response = httpClient.execute(getRequest);
         String body;
         try {
             body = EntityUtils.toString(response.getEntity());

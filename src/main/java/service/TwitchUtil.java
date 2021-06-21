@@ -32,7 +32,7 @@ public class TwitchUtil {
 
     public String getChannelId(String login) throws IOException, JSONException {
         HttpGet httpGet = createHttpGet(CHANNEL_INFO + login);
-        CloseableHttpResponse response = httpClient.client.execute(httpGet);
+        CloseableHttpResponse response = httpClient.execute(httpGet);
         HttpEntity entity = response.getEntity();
         String body = EntityUtils.toString(entity);
         EntityUtils.consume(entity);
@@ -49,7 +49,7 @@ public class TwitchUtil {
 
     public boolean isChannelLive(String channelId) throws IOException, JSONException {
         HttpGet httpGet = createHttpGet(CHANNEL_STREAM + channelId);
-        CloseableHttpResponse response = httpClient.client.execute(httpGet);
+        CloseableHttpResponse response = httpClient.execute(httpGet);
         HttpEntity entity = response.getEntity();
         String body = EntityUtils.toString(entity);
         EntityUtils.consume(entity);
