@@ -13,15 +13,14 @@ import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Controller {
-    private final TwitchUtil twitchUtil = new TwitchUtil();
-    FileChooser fileChooser = new FileChooser();
-    ViewBot viewBot;
-    LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
 
-    {
-        fileChooser.setTitle("Choose proxy file");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
-    }
+    private final TwitchUtil twitchUtil = new TwitchUtil();
+
+    private final FileChooser fileChooser = new FileChooser();
+
+    private final LinkedBlockingQueue<String> proxyQueue = new LinkedBlockingQueue<>();
+
+    private ViewBot viewBot;
 
     @FXML
     private Button startButton;
@@ -30,10 +29,7 @@ public class Controller {
     private TextField channelNameField;
 
     @FXML
-    public TextArea logArea;
-
-    @FXML
-    public Button loadProxiesButton;
+    private TextArea logArea;
 
     @FXML
     private Slider slider;
@@ -44,6 +40,10 @@ public class Controller {
     @FXML
     private Label viewCount;
 
+    {
+        fileChooser.setTitle("Choose proxy file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+    }
 
     public void initialize() {
         slider.valueProperty().addListener(((observable, oldValue, newValue) ->
@@ -62,15 +62,9 @@ public class Controller {
     }
 
     @FXML
-    public void changeButton() {
-        startButton.setText("5");
-    }
-
-    @FXML
     public void writeToLog(String text) {
         logArea.appendText(text + "\n");
     }
-
 
     @FXML
     private void start() {
@@ -89,8 +83,8 @@ public class Controller {
             }
             channelNameField.getStyleClass().remove("error");
 
-            viewBot = new ViewBot(this, proxyQueue, target);
-            viewBot.setThreads(Integer.parseInt(labelViewers.getText()));
+            viewBot = new ViewBot(this, proxyQueue, target, Integer.parseInt(labelViewers.getText()));
+
             Thread viewBotThread = new Thread(viewBot::start);
             viewBotThread.start();
             startButton.setText("STOP");
@@ -120,14 +114,13 @@ public class Controller {
         }
     }
 
-
     @FXML
     private void loadProxy() {
         File file = fileChooser.showOpenDialog(Main.mainStage);
         if (file != null) {
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
                 String proxy;
-                proxyQueue = new LinkedBlockingQueue<>(100000);
+                proxyQueue.clear();
                 while ((proxy = bufferedReader.readLine()) != null) {
                     proxyQueue.add(proxy);
                 }
@@ -149,11 +142,4 @@ public class Controller {
         return startButton;
     }
 
-    public TextField getChannelNameField() {
-        return channelNameField;
-    }
-
-    public TextArea getLogArea() {
-        return logArea;
-    }
 }
