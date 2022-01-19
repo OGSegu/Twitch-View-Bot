@@ -1,5 +1,9 @@
 ![Build](https://github.com/OGSegu/Twitch-View-Bot/workflows/Java/badge.svg)
 
+
+# OUTDATED
+### This project won't be supported. 
+
 # Twitch View Bot
 
 __disclaimer:__ This project was created only for educational purpose and really fast. It probably has a lot of bugs and bad architecture.
